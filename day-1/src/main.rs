@@ -1,4 +1,4 @@
-use std::{error::Error, fs, collections::HashMap, borrow::BorrowMut, io};
+use std::{error::Error, fs, collections::HashMap};
 
 #[derive(Debug)]
 struct TrieNode {
@@ -51,17 +51,16 @@ impl<'a> TrieNode {
     fn get_num_from_digit_or_str(&self, chars: impl Iterator<Item = char>, reverse: bool) -> char {
         let mut iter = self.iter();
         let mut last_c = ' ';
-        println!("\n");
         for c in chars {
-            println!("{} {:?}", c, iter.word);
-
             let mut next_word = iter.next(&c);
 
             if let Some(word) = next_word {
                 if word == "" {
                     iter = self.iter();
-                    if self.get(&last_c).is_some() && self.get(&last_c).unwrap().get(&c).is_some() {
-                        iter.next(&last_c);
+                    if let Some(node) = self.get(&last_c) {
+                        if node.get(&c).is_some() {
+                            iter.next(&last_c);
+                        }
                     }
                     next_word = iter.next(&c);
                 }
@@ -101,7 +100,7 @@ impl<'a> TrieIterator<'a> {
         match self.cur_node.get(c) {
             Some(node) => {
                 self.cur_node = node;
-                self.word.push(*c);
+                self.word.push(node.value);
                 None
             },
             None => {
@@ -122,41 +121,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let lines = input.split("\n").filter(|l| l.len() > 0);
 
     let mut calibration_values = Vec::new();
-    let mut better_calibration_values = Vec::new();
     for l in lines {
-        let better_l = l
-            .replace("zero", "0")
-            .replace("one", "1")
-            .replace("two", "2")
-            .replace("three", "3")
-            .replace("four", "4")
-            .replace("five", "5")
-            .replace("six", "6")
-            .replace("seven", "7")
-            .replace("eight", "8")
-            .replace("nine", "9")
-        ;
         let forward = l.chars();
         let reverse = l.chars().rev();
-
-        let mut better_forward = better_l.chars();
-        let mut better_reverse = better_l.chars().rev();
-        let better_digit_1 = better_forward.find(|c| c.is_digit(10)).unwrap();
-        let better_digit_2 = better_reverse.find(|c| c.is_digit(10)).unwrap();
 
         let digit_1 = num_trie.get_num_from_digit_or_str(forward, false);
         let digit_2 = num_trie_rev.get_num_from_digit_or_str(reverse, true);
 
-
         let value = String::from_iter([digit_1, digit_2]).parse::<u32>()?;
-        let better_value = String::from_iter([better_digit_1, better_digit_2]).parse::<u32>()?;
-        println!("{} {} {}", l, value, better_value);
         calibration_values.push(value);
-        better_calibration_values.push(better_value);
     }
 
     println!("{}", calibration_values.iter().sum::<u32>());
-    // println!("{}", better_calibration_values.iter().sum::<u32>());
 
     Ok(())
 }
