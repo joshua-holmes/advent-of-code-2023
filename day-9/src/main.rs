@@ -9,6 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect();
 
     let mut values_right_of_history = Vec::with_capacity(history.len());
+    let mut values_left_of_history = Vec::with_capacity(history.len());
     for h in history.iter() {
         let len = h.len();
         let mut extrapolation = vec![h.clone()];
@@ -33,6 +34,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         println!("{:?}", extrapolation);
 
+        // find new value left of history
+        let mut num_to_sub = 0;
+        for (i, extr) in extrapolation.iter_mut().rev().enumerate() {
+            if i == 0 {
+                continue;
+            }
+
+            num_to_sub = extr.first().unwrap() - num_to_sub;
+        }
+        println!("value left of history {}", num_to_sub);
+        values_left_of_history.push(num_to_sub);
+
         // find new value right of history
         let mut num_to_add = 0;
         for (i, extr) in extrapolation.iter_mut().rev().enumerate() {
@@ -42,11 +55,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             num_to_add += extr.last().unwrap();
         }
-        println!("new num {}\n", num_to_add);
+        println!("value right of history {}\n", num_to_add);
         values_right_of_history.push(num_to_add);
     }
 
-    println!("answer {}", values_right_of_history.iter().sum::<i64>());
+    println!("answer part 1 {}", values_right_of_history.iter().sum::<i64>());
+    println!("answer part 2 {}", values_left_of_history.iter().sum::<i64>());
 
     Ok(())
 }
